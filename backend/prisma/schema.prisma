@@ -1,0 +1,41 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Model representations matching your cumulative database configuration
+model User {
+  id                 Int                  @id @default(autoincrement())
+  name               String?
+  email              String               @unique
+  password           String
+  verified           Boolean              @default(false)
+  role               String               @default("user")
+  VerificationTokens VerificationToken[]
+  RefreshTokens      RefreshToken[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  token      String
+  expires_at DateTime
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("verification_tokens")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  token      String
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}

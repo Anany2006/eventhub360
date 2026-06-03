@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from "react";
 import axios from "axios";
 
@@ -67,6 +68,9 @@ function Signup() {
           Register
         </button>
       </form>
+      <p style={{ textAlign: "center", marginTop: "15px" }}>
+      Already have an account? <Link to="/">Log in here</Link>
+    </p>
     </div>
   );
 }

@@ -1,11 +1,9 @@
-const { Pool } = require("pg");
+const { PrismaClient } = require("@prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT
+// Reusable instantiated Prisma Engine client instance
+const prisma = new PrismaClient({
+	adapter: new PrismaPg(process.env.DATABASE_URL)
 });
 
-module.exports = pool;
+module.exports = prisma;

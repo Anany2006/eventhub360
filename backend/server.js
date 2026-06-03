@@ -11,6 +11,9 @@ app.use(express.json());
 // Redirect all auth requests to the routes file
 app.use("/api/auth", authRoutes);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+// Dynamic port binding for production environments
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running securely on port ${PORT}`);
 });
