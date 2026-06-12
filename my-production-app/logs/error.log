@@ -1,0 +1,12 @@
+{"level":"error","message":"[POST] /api/v1/employees - Status: 422 - Error: \"email\" must be a valid email, \"phone\" length must be at least 10 characters long, \"salary\" must be a positive number, \"hireDate\" must be in ISO 8601 date format","timestamp":"2026-06-12 23:26:45"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:41:57"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:43:16"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:43:19"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:44:05"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:45:28"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:15"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:16"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:17"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:17"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:17"}
+{"level":"error","message":"[POST] /api/v1/employees/upload-asset - Status: 404 - Error: The requested API route path does not exist.","timestamp":"2026-06-12 23:46:18"}
