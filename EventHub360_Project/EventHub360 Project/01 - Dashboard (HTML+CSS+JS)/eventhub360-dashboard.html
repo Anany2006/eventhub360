@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventHub360 – Employee Management System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0F2044;--teal:#0D9488;--teal-lt:#14B8A6;--mint:#CCFBF1;
+  --white:#fff;--off:#F0FDFA;--slate:#475569;--silver:#94A3B8;
+  --card:#F8FAFC;--red:#EF4444;--amber:#F59E0B;--indigo:#6366F1;
+  --shadow:0 2px 12px rgba(0,0,0,.09);--r:12px;
+}
+body{font-family:Calibri,Segoe UI,sans-serif;background:var(--off);color:var(--navy)}
+
+/* ── AUTH ─────────────────────────────────────── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 60%,#0D4040 100%)}
+.auth-card{background:var(--white);border-radius:20px;padding:40px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo .logo-circle{width:64px;height:64px;background:linear-gradient(135deg,var(--teal),var(--teal-lt));border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px}
+.auth-logo h1{font-size:22px;font-weight:700;color:var(--navy)}
+.auth-logo p{font-size:12px;color:var(--silver)}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;border-radius:10px;overflow:hidden;border:1.5px solid #E2E8F0}
+.auth-tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;background:var(--card);color:var(--slate);transition:.2s}
+.auth-tab.active{background:var(--teal);color:var(--white)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:14px;outline:none;transition:.2s;background:var(--card)}
+.form-group input:focus,.form-group select:focus{border-color:var(--teal);background:var(--white)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:36px}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--silver);font-size:16px;user-select:none}
+.strength-bar{height:4px;border-radius:2px;margin-top:6px;transition:all .3s;background:#E2E8F0}
+.strength-bar .fill{height:100%;border-radius:2px;transition:all .3s}
+.btn-primary{width:100%;padding:12px;background:var(--teal);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;margin-top:4px}
+.btn-primary:hover{background:#0b8276}
+.btn-demo{width:100%;padding:10px;background:transparent;color:var(--teal);border:2px solid var(--teal);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;margin-top:10px}
+.btn-demo:hover{background:var(--mint)}
+.auth-error{background:#FEF2F2;color:var(--red);border:1px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.auth-success{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+
+/* ── APP SHELL ────────────────────────────────── */
+#app{display:none;height:100vh;overflow:hidden;flex-direction:row}
+#app.visible{display:flex}
+
+/* Sidebar */
+#sidebar{width:240px;min-width:240px;background:var(--navy);display:flex;flex-direction:column;height:100vh}
+.sidebar-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand .brand-row{display:flex;align-items:center;gap:10px}
+.brand-dot{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal-lt));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.brand-name{font-size:16px;font-weight:700;color:var(--white)}
+.brand-sub{font-size:10px;color:var(--silver);margin-top:1px}
+nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-label{font-size:10px;font-weight:700;color:var(--silver);letter-spacing:1.5px;padding:8px 20px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent;font-size:14px}
+.nav-item:hover{background:rgba(255,255,255,.06);color:var(--white)}
+.nav-item.active{background:rgba(13,148,136,.18);color:var(--teal-lt);border-left-color:var(--teal)}
+.nav-item .icon{font-size:17px;width:22px;text-align:center}
+.sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.user-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.user-avatar{width:36px;height:36px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--white);flex-shrink:0}
+.user-name{font-size:13px;font-weight:600;color:var(--white)}
+.user-role{font-size:11px;color:var(--silver)}
+.btn-signout{width:100%;padding:8px;background:rgba(239,68,68,.15);color:#FCA5A5;border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:13px;cursor:pointer;transition:.2s}
+.btn-signout:hover{background:rgba(239,68,68,.25)}
+
+/* Main */
+#main{flex:1;overflow-y:auto;background:var(--off);display:flex;flex-direction:column}
+.topbar{padding:16px 28px;background:var(--white);border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar h2{font-size:20px;font-weight:700;color:var(--navy)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:var(--mint);color:var(--teal)}
+.page-content{padding:24px 28px;flex:1}
+
+/* KPI cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--white);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.kpi-card .kpi-label{font-size:11px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .kpi-val{font-size:30px;font-weight:700;color:var(--navy);margin:6px 0 2px}
+.kpi-card .kpi-sub{font-size:12px;color:var(--silver)}
+.kpi-card.teal .kpi-val{color:var(--teal)}
+.kpi-card.red .kpi-val{color:var(--red)}
+
+/* Charts grid */
+.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:20px}
+.chart-card{background:var(--white);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.chart-wrap{position:relative;height:240px}
+.chart-wrap.tall{height:300px}
+
+/* Filters bar */
+.filters-bar{background:var(--white);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.filters-bar input,.filters-bar select{padding:8px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;outline:none;background:var(--card);transition:.2s;min-width:150px}
+.filters-bar input:focus,.filters-bar select:focus{border-color:var(--teal)}
+.filter-label{font-size:12px;font-weight:600;color:var(--slate)}
+.btn-reset{padding:8px 14px;background:var(--navy);color:var(--white);border:none;border-radius:8px;font-size:13px;cursor:pointer;transition:.2s}
+.btn-reset:hover{background:#1a3a5c}
+
+/* Table */
+.table-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--navy);color:var(--white)}
+th{padding:13px 16px;font-size:12px;font-weight:600;text-align:left;letter-spacing:.3px}
+td{padding:12px 16px;border-bottom:1px solid #F1F5F9;color:var(--slate)}
+tr:hover td{background:#FAFAFA}
+.domain-badge,.status-badge,.mode-badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.domain-badge.aiml{background:#D1FAE5;color:#065F46}
+.domain-badge.se{background:#DBEAFE;color:#1E40AF}
+.domain-badge.hr{background:#FCE7F3;color:#9D174D}
+.domain-badge.da{background:#FEF3C7;color:#92400E}
+.domain-badge.cyber{background:#EDE9FE;color:#4C1D95}
+.domain-badge.cloud{background:#CFFAFE;color:#164E63}
+.status-badge.present{background:#D1FAE5;color:#065F46}
+.status-badge.absent{background:#FEE2E2;color:#991B1B}
+.status-badge.late{background:#FEF3C7;color:#92400E}
+.status-badge.leave{background:#EDE9FE;color:#4C1D95}
+.mode-badge.offline{background:#F1F5F9;color:var(--slate)}
+.mode-badge.hybrid{background:#FEF3C7;color:#92400E}
+.mode-badge.online{background:#D1FAE5;color:#065F46}
+
+/* Attendance page */
+.attend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.attend-stat{background:var(--white);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);text-align:center}
+.attend-stat .a-val{font-size:32px;font-weight:700;margin-bottom:4px}
+.attend-stat .a-label{font-size:12px;font-weight:600;color:var(--silver)}
+.progress-bar{height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
+
+/* Salary page */
+.salary-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.sal-card{background:var(--white);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.sal-card .s-label{font-size:11px;font-weight:700;color:var(--silver);text-transform:uppercase}
+.sal-card .s-val{font-size:28px;font-weight:700;margin-top:6px}
+
+/* Toast */
+#toast{position:fixed;top:20px;right:20px;background:var(--navy);color:var(--white);padding:14px 20px;border-radius:10px;font-size:14px;z-index:999;transform:translateY(-80px);transition:.3s;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:320px}
+#toast.show{transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ─── TOAST ──────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ─── AUTH SCREEN ───────────────────────────────────────── -->
+<div id="auth-screen">
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="logo-circle">🏢</div>
+    <h1>EventHub360</h1>
+    <p>Employee Management System</p>
+  </div>
+  <div class="auth-tabs">
+    <div class="auth-tab active" onclick="switchTab('login')">Sign In</div>
+    <div class="auth-tab" onclick="switchTab('signup')">Sign Up</div>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="login-form">
+    <div class="auth-error" id="login-err"></div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="l-email" placeholder="you@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="l-pass" placeholder="••••••••">
+        <span class="pw-toggle" onclick="togglePw('l-pass',this)">👁</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    <button class="btn-demo" onclick="demoLogin()">🎓 Demo Login (Admin)</button>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signup-form" style="display:none">
+    <div class="auth-error" id="signup-err"></div>
+    <div class="auth-success" id="signup-ok"></div>
+    <div class="form-row">
+      <div class="form-group"><label>First Name</label><input type="text" id="s-first" placeholder="Anany"></div>
+      <div class="form-group"><label>Last Name</label><input type="text" id="s-last" placeholder="Pandit"></div>
+    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="s-email" placeholder="you@example.com"></div>
+    <div class="form-group">
+      <label>Domain / Branch</label>
+      <select id="s-domain">
+        <option value="">Select domain</option>
+        <option>AI / ML</option><option>Software Engineer</option><option>Human Resource</option>
+        <option>Data Analytics</option><option>Cybersecurity</option><option>Cloud Computing</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Role</label>
+        <select id="s-role"><option>Admin</option><option>Manager</option><option>Student</option></select>
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <select id="s-city">
+          <option value="">Select city</option>
+          <option>Indore</option><option>Mumbai</option><option>Delhi</option><option>Bangalore</option>
+          <option>Pune</option><option>Hyderabad</option><option>Chennai</option><option>Jaipur</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="s-pass" placeholder="Min 8 chars" oninput="checkStrength(this)">
+        <span class="pw-toggle" onclick="togglePw('s-pass',this)">👁</span>
+      </div>
+      <div class="strength-bar"><div class="fill" id="strength-fill" style="width:0%"></div></div>
+    </div>
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="s-confirm" placeholder="••••••••">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="doSignup()">Create Account →</button>
+  </div>
+</div>
+</div>
+
+<!-- ─── APP ───────────────────────────────────────────────── -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-dot">🏢</div>
+        <div><div class="brand-name">EventHub360</div><div class="brand-sub">EMS Dashboard</div></div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" onclick="goPage('overview',this)"><span class="icon">📊</span> Overview</div>
+      <div class="nav-item" onclick="goPage('students',this)"><span class="icon">🎓</span> Students</div>
+      <div class="nav-item" onclick="goPage('attendance',this)"><span class="icon">🗓</span> Attendance</div>
+      <div class="nav-item" onclick="goPage('salary',this)"><span class="icon">💰</span> Salary Report</div>
+      <div class="nav-item" onclick="goPage('analytics',this)"><span class="icon">📈</span> Analytics</div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-row">
+        <div class="user-avatar" id="u-avatar">?</div>
+        <div><div class="user-name" id="u-name">—</div><div class="user-role" id="u-role">—</div></div>
+      </div>
+      <button class="btn-signout" onclick="signOut()">↩ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div id="main">
+    <div class="topbar">
+      <h2 id="page-title">Overview</h2>
+      <div class="topbar-right">
+        <span class="badge" id="topbar-badge">40 Employees</span>
+        <span style="font-size:12px;color:var(--silver)" id="topbar-date"></span>
+      </div>
+    </div>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────
+const DOMAINS = ["AI / ML","Software Engineer","Human Resource","Data Analytics","Cybersecurity","Cloud Computing"];
+const MODES   = ["Offline","Hybrid","Online"];
+const CITIES  = ["Indore","Mumbai","Delhi","Bangalore","Pune","Hyderabad","Chennai","Jaipur","Ahmedabad","Kolkata"];
+const STATUSES= ["Present","Absent","Late","Leave"];
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+const seed=(function(){let x=42;return()=>{x=(x*1664525+1013904223)&0xffffffff;return(x>>>0)/0xffffffff}})();
+function srnd(a,b){return Math.floor(seed()*(b-a+1))+a}
+
+const FIRST=["Aarav","Aanya","Arjun","Priya","Rohan","Sneha","Vikram","Ishaan","Kavya","Rahul","Ananya","Siddharth","Diya","Ayush","Meera","Karan","Pooja","Nikhil","Riya","Amit","Shreya","Dev","Naina","Akash","Simran","Harsh","Aditi","Raj","Deepa","Varun","Neha","Aditya","Swati","Manish","Pallavi","Suresh","Kritika","Tarun","Bhavya","Anany"];
+const LAST=["Sharma","Patel","Singh","Kumar","Verma","Gupta","Shah","Mehta","Joshi","Agarwal","Tiwari","Pandey","Rao","Nair","Mishra","Chaudhary","Srivastava","Das","Reddy","Pandit","Saxena","Bhatt","Tripathi","Malhotra","Kapoor","Bajaj","Chauhan","Arora","Desai","Bose","Iyer","Naidu","Pillai","Menon","Choudhury","Sengupta","Bhat","Hegde","Krishnan","Pandit"];
+
+const EMPLOYEES = Array.from({length:40},(_,i)=>{
+  const base = 30000+srnd(0,5)*5000;
+  const att  = srnd(70,98);
+  const status= att>90?"Present":att>80?"Late":att>70?"Present":srnd(0,1)?"Absent":"Leave";
+  return {
+    id:i+1,
+    name:`${FIRST[i]} ${LAST[i]}`,
+    domain:DOMAINS[srnd(0,5)],
+    mode:MODES[srnd(0,2)],
+    city:CITIES[srnd(0,9)],
+    status:STATUSES[srnd(0,3)],
+    attendance:att,
+    present:Math.round(att*0.24),
+    absent:rnd(1,5),
+    late:rnd(1,4),
+    leave:rnd(0,3),
+    baseSalary:base,
+    bonus:Math.round(att/100*base*0.08),
+    deduction:rnd(500,3000),
+  };
+});
+EMPLOYEES[39].name="Anany Pandit";
+
+let currentPage='overview';
+let chartInstances={};
+
+// ─── AUTH ─────────────────────────────────────────────────────
+function getUsers(){try{return JSON.parse(localStorage.getItem('eh360_users')||'[]')}catch{return[]}}
+function setUsers(u){localStorage.setItem('eh360_users',JSON.stringify(u))}
+function setSession(u){localStorage.setItem('eh360_session',JSON.stringify(u))}
+function getSession(){try{return JSON.parse(localStorage.getItem('eh360_session')||'null')}catch{return null}}
+
+function switchTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
+}
+function togglePw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈'}
+function checkStrength(el){
+  const v=el.value,f=document.getElementById('strength-fill');
+  let s=0;
+  if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const cols=['#EF4444','#F59E0B','#0D9488','#14B8A6'];
+  f.style.width=(s*25)+'%';f.style.background=cols[s-1]||'#E2E8F0';
+}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000)}
+function showOk(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block'}
+
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  if(!email||!pass)return showErr('login-err','Please fill in all fields.');
+  const users=getUsers();
+  const u=users.find(x=>x.email===email&&x.password===pass);
+  if(!u)return showErr('login-err','Invalid email or password.');
+  setSession(u);launchApp(u);
+}
+function demoLogin(){
+  const u={firstName:'Admin',lastName:'Demo',email:'admin@eventhub360.com',domain:'AI / ML',role:'Admin',city:'Indore'};
+  setSession(u);launchApp(u);
+}
+function doSignup(){
+  const first=document.getElementById('s-first').value.trim();
+  const last=document.getElementById('s-last').value.trim();
+  const email=document.getElementById('s-email').value.trim();
+  const domain=document.getElementById('s-domain').value;
+  const role=document.getElementById('s-role').value;
+  const city=document.getElementById('s-city').value;
+  const pass=document.getElementById('s-pass').value;
+  const confirm=document.getElementById('s-confirm').value;
+  if(!first||!last||!email||!domain||!role||!city||!pass)return showErr('signup-err','Please fill in all fields.');
+  if(pass!==confirm)return showErr('signup-err','Passwords do not match.');
+  if(pass.length<8)return showErr('signup-err','Password must be at least 8 characters.');
+  const users=getUsers();
+  if(users.find(x=>x.email===email))return showErr('signup-err','An account with this email already exists.');
+  const u={firstName:first,lastName:last,email,domain,role,city,password:pass};
+  users.push(u);setUsers(users);setSession(u);
+  showOk('signup-ok','Account created! Signing you in…');
+  setTimeout(()=>launchApp(u),900);
+}
+function signOut(){localStorage.removeItem('eh360_session');location.reload()}
+
+function launchApp(u){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('u-avatar').textContent=(u.firstName[0]+(u.lastName||'')[0]||'').toUpperCase();
+  document.getElementById('u-name').textContent=`${u.firstName} ${u.lastName||''}`;
+  document.getElementById('u-role').textContent=`${u.role||'User'} · ${u.domain||''}`;
+  document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  toast(`Welcome back, ${u.firstName}! 👋`);
+  renderPage('overview');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────
+const pageTitles={overview:'Overview Dashboard',students:'Student Directory',attendance:'Attendance Register',salary:'Salary Report',analytics:'Analytics'};
+function goPage(page,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles[page];
+  renderPage(page);
+}
+function renderPage(page){
+  currentPage=page;
+  Object.values(chartInstances).forEach(c=>{try{c.destroy()}catch{}});
+  chartInstances={};
+  const el=document.getElementById('page-content');
+  if(page==='overview')el.innerHTML=buildOverview();
+  else if(page==='students')el.innerHTML=buildStudents();
+  else if(page==='attendance')el.innerHTML=buildAttendance();
+  else if(page==='salary')el.innerHTML=buildSalary();
+  else if(page==='analytics')el.innerHTML=buildAnalytics();
+  setTimeout(()=>initCharts(page),50);
+  updateBadge(EMPLOYEES.length);
+}
+
+function updateBadge(n){document.getElementById('topbar-badge').textContent=`${n} Employees`}
+
+// ─── OVERVIEW PAGE ────────────────────────────────────────────
+function buildOverview(){
+  const total=EMPLOYEES.length;
+  const present=EMPLOYEES.filter(e=>e.status==='Present').length;
+  const avgAtt=Math.round(EMPLOYEES.reduce((s,e)=>s+e.attendance,0)/total);
+  const avgSal=Math.round(EMPLOYEES.reduce((s,e)=>s+(e.baseSalary+e.bonus-e.deduction),0)/total);
+  return `
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Total Employees</div><div class="kpi-val">${total}</div><div class="kpi-sub">Across all domains</div></div>
+    <div class="kpi-card teal"><div class="kpi-label">Present Today</div><div class="kpi-val">${present}</div><div class="kpi-sub">${Math.round(present/total*100)}% of workforce</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Attendance</div><div class="kpi-val">${avgAtt}%</div><div class="kpi-sub">Organisation wide</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Net Salary</div><div class="kpi-val">₹${avgSal.toLocaleString()}</div><div class="kpi-sub">Post deductions</div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Domain Distribution</div><div class="chart-wrap"><canvas id="c-domain"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Work Mode Split</div><div class="chart-wrap"><canvas id="c-mode"></canvas></div></div>
+    <div class="chart-card full"><div class="chart-title">Attendance Overview (Organisation Total Days)</div><div class="chart-wrap"><canvas id="c-attend-ov"></canvas></div></div>
+  </div>`;
+}
+
+// ─── STUDENTS PAGE ────────────────────────────────────────────
+function buildStudents(){
+  return `
+  <div class="filters-bar">
+    <span class="filter-label">🔍</span>
+    <input type="text" id="f-name" placeholder="Search by name…" oninput="filterStudents()">
+    <select id="f-domain" onchange="filterStudents()"><option value="">All Domains</option>${DOMAINS.map(d=>`<option>${d}</option>`).join('')}</select>
+    <select id="f-mode" onchange="filterStudents()"><option value="">All Work Modes</option>${MODES.map(m=>`<option>${m}</option>`).join('')}</select>
+    <select id="f-city" onchange="filterStudents()"><option value="">All Cities</option>${CITIES.map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="f-status" onchange="filterStudents()"><option value="">All Statuses</option>${STATUSES.map(s=>`<option>${s}</option>`).join('')}</select>
+    <button class="btn-reset" onclick="resetFilters()">Reset</button>
+  </div>
+  <div class="table-card"><div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Name</th><th>Domain</th><th>Work Mode</th><th>City</th><th>Attendance %</th><th>Status</th></tr></thead>
+    <tbody id="student-tbody">${studentRows(EMPLOYEES)}</tbody>
+  </table></div></div>`;
+}
+
+const domainClass={
+  'AI / ML':'aiml','Software Engineer':'se','Human Resource':'hr',
+  'Data Analytics':'da','Cybersecurity':'cyber','Cloud Computing':'cloud'
+};
+const modeClass={Offline:'offline',Hybrid:'hybrid',Online:'online'};
+const statusClass={Present:'present',Absent:'absent',Late:'late',Leave:'leave'};
+
+function studentRows(emps){
+  return emps.map((e,i)=>`
+  <tr>
+    <td style="color:var(--silver);font-size:12px">${i+1}</td>
+    <td style="font-weight:600;color:var(--navy)">${e.name}</td>
+    <td><span class="domain-badge ${domainClass[e.domain]||'se'}">${e.domain}</span></td>
+    <td><span class="mode-badge ${modeClass[e.mode]}">${e.mode}</span></td>
+    <td>${e.city}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${e.attendance}%;background:${e.attendance>85?'var(--teal)':e.attendance>70?'var(--amber)':'var(--red)'}"></div></div>
+        <span style="font-size:12px;font-weight:600">${e.attendance}%</span>
+      </div>
+    </td>
+    <td><span class="status-badge ${statusClass[e.status]}">${e.status}</span></td>
+  </tr>`).join('');
+}
+
+function filterStudents(){
+  const name=(document.getElementById('f-name')?.value||'').toLowerCase();
+  const domain=document.getElementById('f-domain')?.value||'';
+  const mode=document.getElementById('f-mode')?.value||'';
+  const city=document.getElementById('f-city')?.value||'';
+  const status=document.getElementById('f-status')?.value||'';
+  const filtered=EMPLOYEES.filter(e=>
+    (!name||e.name.toLowerCase().includes(name))&&
+    (!domain||e.domain===domain)&&
+    (!mode||e.mode===mode)&&
+    (!city||e.city===city)&&
+    (!status||e.status===status)
+  );
+  document.getElementById('student-tbody').innerHTML=studentRows(filtered);
+  updateBadge(filtered.length);
+}
+function resetFilters(){
+  ['f-name','f-domain','f-mode','f-city','f-status'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  filterStudents();
+}
+
+// ─── ATTENDANCE PAGE ──────────────────────────────────────────
+function buildAttendance(){
+  const totP=EMPLOYEES.reduce((s,e)=>s+e.present,0);
+  const totA=EMPLOYEES.reduce((s,e)=>s+e.absent,0);
+  const totL=EMPLOYEES.reduce((s,e)=>s+e.late,0);
+  const totLv=EMPLOYEES.reduce((s,e)=>s+e.leave,0);
+  return `
+  <div class="attend-grid">
+    <div class="attend-stat"><div class="a-val" style="color:var(--teal)">${totP}</div><div class="a-label">Total Present Days</div></div>
+    <div class="attend-stat"><div class="a-val" style="color:var(--red)">${totA}</div><div class="a-label">Total Absent Days</div></div>
+    <div class="attend-stat"><div class="a-val" style="color:var(--amber)">${totL}</div><div class="a-label">Total Late Days</div></div>
+    <div class="attend-stat"><div class="a-val" style="color:var(--indigo)">${totLv}</div><div class="a-label">Total Leave Days</div></div>
+  </div>
+  <div class="table-card"><div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Domain</th><th>Present</th><th>Absent</th><th>Late</th><th>Leave</th><th>Attendance %</th><th>Today</th></tr></thead>
+    <tbody>${EMPLOYEES.map(e=>`
+    <tr>
+      <td style="font-weight:600;color:var(--navy)">${e.name}</td>
+      <td><span class="domain-badge ${domainClass[e.domain]||'se'}" style="font-size:10px">${e.domain}</span></td>
+      <td style="color:var(--teal);font-weight:600">${e.present}</td>
+      <td style="color:var(--red);font-weight:600">${e.absent}</td>
+      <td style="color:var(--amber);font-weight:600">${e.late}</td>
+      <td style="color:var(--indigo);font-weight:600">${e.leave}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="width:90px"><div class="progress-fill" style="width:${e.attendance}%;background:${e.attendance>85?'var(--teal)':e.attendance>70?'var(--amber)':'var(--red)'}"></div></div>
+          <span style="font-size:12px;font-weight:700">${e.attendance}%</span>
+        </div>
+      </td>
+      <td><span class="status-badge ${statusClass[e.status]}">${e.status}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+// ─── SALARY PAGE ──────────────────────────────────────────────
+function buildSalary(){
+  const totalBase=EMPLOYEES.reduce((s,e)=>s+e.baseSalary,0);
+  const totalNet=EMPLOYEES.reduce((s,e)=>s+(e.baseSalary+e.bonus-e.deduction),0);
+  const totalBonus=EMPLOYEES.reduce((s,e)=>s+e.bonus,0);
+  return `
+  <div class="salary-summary">
+    <div class="sal-card"><div class="s-label">Total Base Payroll</div><div class="s-val" style="color:var(--navy)">₹${(totalBase/100000).toFixed(1)}L</div></div>
+    <div class="sal-card"><div class="s-label">Total Bonuses</div><div class="s-val" style="color:var(--teal)">₹${(totalBonus/100000).toFixed(1)}L</div></div>
+    <div class="sal-card"><div class="s-label">Total Net Payroll</div><div class="s-val" style="color:var(--navy)">₹${(totalNet/100000).toFixed(1)}L</div></div>
+  </div>
+  <div class="table-card"><div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Domain</th><th>Base Salary</th><th>Att. Bonus</th><th>Deductions</th><th>Net Pay</th><th>Att. %</th></tr></thead>
+    <tbody>${EMPLOYEES.map(e=>{
+      const net=e.baseSalary+e.bonus-e.deduction;
+      return`<tr>
+        <td style="font-weight:600;color:var(--navy)">${e.name}</td>
+        <td><span class="domain-badge ${domainClass[e.domain]||'se'}" style="font-size:10px">${e.domain}</span></td>
+        <td>₹${e.baseSalary.toLocaleString()}</td>
+        <td style="color:var(--teal);font-weight:600">+₹${e.bonus.toLocaleString()}</td>
+        <td style="color:var(--red);font-weight:600">−₹${e.deduction.toLocaleString()}</td>
+        <td style="font-weight:700;color:var(--navy)">₹${net.toLocaleString()}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="progress-bar" style="width:60px"><div class="progress-fill" style="width:${e.attendance}%;background:${e.attendance>85?'var(--teal)':e.attendance>70?'var(--amber)':'var(--red)'}"></div></div>
+            <span style="font-size:12px">${e.attendance}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+}
+
+// ─── ANALYTICS PAGE ───────────────────────────────────────────
+function buildAnalytics(){
+  return `
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Domain Distribution</div><div class="chart-wrap"><canvas id="c-domain"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Work Mode Breakdown</div><div class="chart-wrap"><canvas id="c-mode"></canvas></div></div>
+    <div class="chart-card full"><div class="chart-title">Attendance Overview (Total Days)</div><div class="chart-wrap tall"><canvas id="c-attend-ov"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Average Net Salary by Domain</div><div class="chart-wrap tall"><canvas id="c-salary-domain"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Employees by City</div><div class="chart-wrap tall"><canvas id="c-city"></canvas></div></div>
+  </div>`;
+}
+
+// ─── CHART INIT ───────────────────────────────────────────────
+const PALETTE=['#0D9488','#14B8A6','#0F766E','#5EEAD4','#0891B2','#0284C7'];
+const chartDefaults={
+  chartArea:{fill:{color:'#FFFFFF'},roundedCorners:true},
+  catAxisLabelColor:'#64748B',valAxisLabelColor:'#64748B',
+};
+
+function mkChart(id,type,data,opts){
+  const el=document.getElementById(id);if(!el)return;
+  const ctx=el.getContext('2d');
+  chartInstances[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});
+}
+
+function initCharts(page){
+  // Domain doughnut / bar
+  const domainCounts={};
+  DOMAINS.forEach(d=>{domainCounts[d]=EMPLOYEES.filter(e=>e.domain===d).length});
+  const domainLabels=Object.keys(domainCounts);
+  const domainVals=Object.values(domainCounts);
+
+  if(document.getElementById('c-domain')){
+    const isDoughnut=(page==='overview'||page==='analytics');
+    mkChart('c-domain', isDoughnut?'doughnut':'bar',
+      {labels:domainLabels,datasets:[{data:domainVals,backgroundColor:PALETTE,borderWidth:0}]},
+      {plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}}}
+    );
+  }
+
+  // Work mode pie
+  if(document.getElementById('c-mode')){
+    const modeCounts={};
+    MODES.forEach(m=>{modeCounts[m]=EMPLOYEES.filter(e=>e.mode===m).length});
+    mkChart('c-mode','doughnut',
+      {labels:Object.keys(modeCounts),datasets:[{data:Object.values(modeCounts),backgroundColor:['#475569','#F59E0B','#0D9488'],borderWidth:0}]},
+      {plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}}}
+    );
+  }
+
+  // Attendance overview bar
+  if(document.getElementById('c-attend-ov')){
+    const totP=EMPLOYEES.reduce((s,e)=>s+e.present,0);
+    const totA=EMPLOYEES.reduce((s,e)=>s+e.absent,0);
+    const totL=EMPLOYEES.reduce((s,e)=>s+e.late,0);
+    const totLv=EMPLOYEES.reduce((s,e)=>s+e.leave,0);
+    mkChart('c-attend-ov','bar',
+      {labels:['Present','Absent','Late','Leave'],datasets:[{data:[totP,totA,totL,totLv],backgroundColor:['#0D9488','#EF4444','#F59E0B','#6366F1'],borderRadius:6,borderWidth:0}]},
+      {plugins:{legend:{display:false}},scales:{y:{grid:{color:'#F1F5F9'},ticks:{color:'#94A3B8'}},x:{grid:{display:false},ticks:{color:'#94A3B8'}}}}
+    );
+  }
+
+  // Salary by domain (horizontal bar)
+  if(document.getElementById('c-salary-domain')){
+    const salByDomain={};
+    DOMAINS.forEach(d=>{
+      const emps=EMPLOYEES.filter(e=>e.domain===d);
+      salByDomain[d]=emps.length?Math.round(emps.reduce((s,e)=>s+(e.baseSalary+e.bonus-e.deduction),0)/emps.length):0;
+    });
+    mkChart('c-salary-domain','bar',
+      {labels:Object.keys(salByDomain),datasets:[{data:Object.values(salByDomain),backgroundColor:PALETTE,borderRadius:6,borderWidth:0}]},
+      {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#F1F5F9'},ticks:{color:'#94A3B8',callback:v=>'₹'+v.toLocaleString()}},y:{grid:{display:false},ticks:{color:'#94A3B8',font:{size:11}}}}}
+    );
+  }
+
+  // City bar
+  if(document.getElementById('c-city')){
+    const cityCounts={};
+    CITIES.forEach(c=>{cityCounts[c]=EMPLOYEES.filter(e=>e.city===c).length});
+    mkChart('c-city','bar',
+      {labels:Object.keys(cityCounts),datasets:[{data:Object.values(cityCounts),backgroundColor:'#0D9488',borderRadius:6,borderWidth:0}]},
+      {plugins:{legend:{display:false}},scales:{y:{grid:{color:'#F1F5F9'},ticks:{color:'#94A3B8'}},x:{grid:{display:false},ticks:{color:'#94A3B8',font:{size:11}}}}}
+    );
+  }
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────
+(function(){
+  const s=getSession();
+  if(s){launchApp(s);}
+})();
+</script>
+</body>
+</html>
